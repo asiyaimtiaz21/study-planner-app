@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Planner</title>
+  <meta name="description" content="Organize your study sessions, track assignments, and monitor your academic progress." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <i class="fa-solid fa-book-open"></i>
+      <span>Study Planner</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#dashboard" class="nav-link active" data-section="dashboard">
+        <i class="fa-solid fa-chart-line"></i> Dashboard
+      </a>
+      <a href="#assignments" class="nav-link" data-section="assignments">
+        <i class="fa-solid fa-list-check"></i> Assignments
+      </a>
+      <a href="#timer" class="nav-link" data-section="timer">
+        <i class="fa-solid fa-clock"></i> Timer
+      </a>
+      <a href="#subjects" class="nav-link" data-section="subjects">
+        <i class="fa-solid fa-folder-open"></i> Subjects
+      </a>
+    </nav>
+  </header>
+
+  <main class="main-content">
+
+    <!-- Welcome / Hero Section -->
+    <section class="hero">
+      <div class="hero-text">
+        <h1>Stay on top of your studies</h1>
+        <p>
+          Study Planner helps you organize assignments, manage your subjects,
+          track focused study sessions, and monitor your progress — all in one place.
+        </p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="showSection('assignments')">
+            <i class="fa-solid fa-plus"></i> Add Assignment
+          </button>
+          <button class="btn btn-secondary" onclick="showSection('timer')">
+            <i class="fa-solid fa-play"></i> Start Timer
+          </button>
+        </div>
+      </div>
+      <div class="hero-icon">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="section active">
+      <h2 class="section-title">
+        <i class="fa-solid fa-chart-line"></i> Dashboard
+      </h2>
+      <p class="section-desc">A quick overview of your study progress.</p>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="fa-solid fa-hourglass-half stat-icon"></i>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-pending">0</span>
+            <span class="stat-label">Assignments Due</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-circle-check stat-icon"></i>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-completed">0</span>
+            <span class="stat-label">Completed</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-folder-open stat-icon"></i>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-subjects">0</span>
+            <span class="stat-label">Active Subjects</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-stopwatch stat-icon"></i>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-sessions">0</span>
+            <span class="stat-label">Sessions Today</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="subsection-title">Upcoming Assignments</h3>
+      <div id="upcoming-list" class="placeholder-box">
+        <i class="fa-solid fa-inbox"></i>
+        <p>No upcoming assignments. Add one to get started!</p>
+      </div>
+    </section>
+
+    <!-- Assignments Section -->
+    <section id="assignments" class="section">
+      <h2 class="section-title">
+        <i class="fa-solid fa-list-check"></i> Assignments
+      </h2>
+      <p class="section-desc">Track what's due and mark tasks complete.</p>
+      <div class="placeholder-box">
+        <i class="fa-solid fa-hammer"></i>
+        <p>Assignment tracker coming soon.</p>
+      </div>
+    </section>
+
+    <!-- Timer Section -->
+    <section id="timer" class="section">
+      <h2 class="section-title">
+        <i class="fa-solid fa-clock"></i> Study Timer
+      </h2>
+      <p class="section-desc">Use focused Pomodoro sessions to study smarter.</p>
+      <div class="placeholder-box">
+        <i class="fa-solid fa-hammer"></i>
+        <p>Pomodoro timer coming soon.</p>
+      </div>
+    </section>
+
+    <!-- Subjects Section -->
+    <section id="subjects" class="section">
+      <h2 class="section-title">
+        <i class="fa-solid fa-folder-open"></i> Subjects
+      </h2>
+      <p class="section-desc">Create and manage your courses and subjects.</p>
+      <div class="placeholder-box">
+        <i class="fa-solid fa-hammer"></i>
+        <p>Subject manager coming soon.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>
+      Study Planner &mdash; Built by asiyaimtiaz21 &middot; UCF &middot; Spring 2026
+    </p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
