@@ -1,0 +1,11 @@
+# Node modules (if you ever add npm later)
+node_modules/
+
+# Environment files (API keys, secrets)
+.env
+
+# OS files
+.DS_Store
+
+# Logs
+*.log
