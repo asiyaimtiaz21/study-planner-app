@@ -1,0 +1,1910 @@
+
+╭─── Claude Code v2.1.71 ──────────────────────────────────────────────────────╮
+│                             │ Tips for getting started                       │
+│     Welcome back Asiya!     │ Run /init to create a CLAUDE.md file with ins… │
+│                             │ ────────────────────────────────────────────── │
+│           ▐▛███▜▌           │ Recent activity                                │
+│          ▝▜█████▛▘          │ No recent activity                             │
+│            ▘▘ ▝▝            │                                                │
+│                             │                                                │
+│   Sonnet 4.6 · Claude Pro   │                                                │
+│     ~/study-planner-app     │                                                │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+  ✻ Voice mode is now available · /voice to enable
+
+❯ I already have a Study Planner app with index.html, styles.css, script.js and 
+ an exisiting README.md file. Before coding features, help me design a clean    
+localstorage data structure for assignments, subjcts, and study sessions. I     
+need it to support full CRUD operations and handle empty states safely. Then    
+create helper functions: getData, saveData, addItem, updateItem, deleteItem.    
+Keep everything simple and in vanilla Javascript.                               
+
+⏺ Read 3 files (ctrl+o to expand)
+
+⏺ Good — I have a clear picture of what exists. I'll create a storage.js file
+  with the data structure design and all five helper functions, then wire it
+  into index.html before script.js.
+
+  Here's the plan:
+
+  Data structure — three independent arrays in localStorage, each item has a
+  generated id and createdAt:
+  - sp_subjects — name, color
+  - sp_assignments — title, subjectId (FK), dueDate, priority, status, notes
+  - sp_sessions — subjectId, duration (seconds), date
+
+  Helpers — getData, saveData, addItem, updateItem, deleteItem, plus a
+  generateId utility.
+
+⏺ Write(storage.js)
+  ⎿  User rejected write to storage.js
+       1 // ============================================================
+       2 //  STUDY PLANNER — storage.js
+       3 //  LocalStorage data layer: schema, helpers, and CRUD ops
+       4 // ============================================================
+       5 
+       6 // ── Storage keys ─────────────────────────────────────────────
+       7 const KEYS = {
+       8   subjects:    'sp_subjects',
+       9   assignments: 'sp_assignments',
+      10   sessions:    'sp_sessions',
+     … +158 lines
+
+❯ Do not create a new file, put everything inside script.js. Keep the data      
+structure simple and store everything under one key in localstorage (like       
+"studyPlannerData"). Now generate: the data structure, helper functions         
+(getData, saveData, addItem, updateItem, deleteItem). Mkae sure it handles      
+empty localStorage safely.                                                      
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Update(script.js)
+  ⎿  Added 93 lines
+       1 +// ----- Data Structure -----                                  
+       2 +//                                                             
+       3 +// All app data lives under one localStorage key.              
+       4 +// Shape:                                                      
+       5 +// {                                                           
+       6 +//   subjects: [                                               
+       7 +//     { id, name, color, createdAt }                          
+       8 +//   ],                                                        
+       9 +//   assignments: [                                            
+      10 +//     { id, title, subjectId, dueDate, priority, status, notes
+         +, createdAt }                                                  
+      11 +//     // priority: "low" | "medium" | "high"                  
+      12 +//     // status:   "pending" | "completed"                    
+      13 +//   ],                                                        
+      14 +//   sessions: [                                               
+      15 +//     { id, subjectId, duration, date, createdAt }            
+      16 +//     // duration: seconds (number)                           
+      17 +//     // date:     "YYYY-MM-DD"                               
+      18 +//   ]                                                         
+      19 +// }                                                           
+      20 +                                                               
+      21 +const STORAGE_KEY = 'studyPlannerData';                        
+      22 +                                                               
+      23 +const DEFAULT_DATA = {                                         
+      24 +  subjects:    [],                                             
+      25 +  assignments: [],                                             
+      26 +  sessions:    [],                                             
+      27 +};                                                             
+      28 +                                                               
+      29 +// Returns the full data object from localStorage.             
+      30 +// Safely falls back to DEFAULT_DATA if empty or corrupted.    
+      31 +function getData() {                                           
+      32 +  try {                                                        
+      33 +    const raw = localStorage.getItem(STORAGE_KEY);             
+      34 +    if (!raw) return structuredClone(DEFAULT_DATA);            
+      35 +    const parsed = JSON.parse(raw);                            
+      36 +    // Ensure all expected keys exist in case of partial data  
+      37 +    return {                                                   
+      38 +      subjects:    Array.isArray(parsed.subjects)    ? parsed.s
+         +ubjects    : [],                                               
+      39 +      assignments: Array.isArray(parsed.assignments) ? parsed.a
+         +ssignments : [],                                               
+      40 +      sessions:    Array.isArray(parsed.sessions)    ? parsed.s
+         +essions    : [],                                               
+      41 +    };                                                         
+      42 +  } catch {                                                    
+      43 +    return structuredClone(DEFAULT_DATA);                      
+      44 +  }                                                            
+      45 +}                                                              
+      46 +                                                               
+      47 +// Persists the full data object to localStorage.              
+      48 +function saveData(data) {                                      
+      49 +  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));     
+      50 +}                                                              
+      51 +                                                               
+      52 +// Generates a simple unique id.                               
+      53 +function generateId() {                                        
+      54 +  return Date.now().toString(36) + Math.random().toString(36).s
+         +lice(2, 7);                                                    
+      55 +}                                                              
+      56 +                                                               
+      57 +// Adds an item to a collection ("subjects" | "assignments" | "
+         +sessions").                                                    
+      58 +// Auto-injects id and createdAt. Returns the saved item.      
+      59 +function addItem(collection, item) {                           
+      60 +  const data = getData();                                      
+      61 +  const newItem = {                                            
+      62 +    id: generateId(),                                          
+      63 +    createdAt: new Date().toISOString(),                       
+      64 +    ...item,                                                   
+      65 +  };                                                           
+      66 +  data[collection].push(newItem);                              
+      67 +  saveData(data);                                              
+      68 +  return newItem;                                              
+      69 +}                                                              
+      70 +                                                               
+      71 +// Updates fields on an item by id within a collection.        
+      72 +// Only supplied fields are changed; rest are preserved.       
+      73 +// Returns the updated item, or null if not found.             
+      74 +function updateItem(collection, id, changes) {                 
+      75 +  const data = getData();                                      
+      76 +  const index = data[collection].findIndex(item => item.id === 
+         +id);                                                           
+      77 +  if (index === -1) return null;                               
+      78 +  data[collection][index] = { ...data[collection][index], ...ch
+         +anges };                                                       
+      79 +  saveData(data);                                              
+      80 +  return data[collection][index];                              
+      81 +}                                                              
+      82 +                                                               
+      83 +// Removes an item by id from a collection.                    
+      84 +// Returns true if removed, false if not found.                
+      85 +function deleteItem(collection, id) {                          
+      86 +  const data = getData();                                      
+      87 +  const before = data[collection].length;                      
+      88 +  data[collection] = data[collection].filter(item => item.id !=
+         += id);                                                         
+      89 +  if (data[collection].length === before) return false;        
+      90 +  saveData(data);                                              
+      91 +  return true;                                                 
+      92 +}                                                              
+      93 +                                                               
+      94  // ----- Navigation -----
+      95  
+      96  function showSection(sectionId) {
+
+⏺ Done. Here's a summary of what was added to script.js:
+
+  Single key: 'studyPlannerData' stores an object with three arrays — subjects,
+  assignments, sessions.
+
+  Empty state safety:
+  - getData() wraps JSON.parse in a try/catch, returns DEFAULT_DATA if
+  localStorage is empty or malformed
+  - Each array key is individually validated with Array.isArray — so
+  partial/corrupted data can't break the app
+
+  Helper signatures:
+
+  ┌──────────────────────────────┬──────────────────────────────────────────┐
+  │           Function           │                  Usage                   │
+  ├──────────────────────────────┼──────────────────────────────────────────┤
+  │ getData()                    │ Returns the full data object             │
+  ├──────────────────────────────┼──────────────────────────────────────────┤
+  │ saveData(data)               │ Persists the full data object            │
+  ├──────────────────────────────┼──────────────────────────────────────────┤
+  │ addItem(collection, item)    │ addItem('assignments', { title: 'Essay', │
+  │                              │  ... })                                  │
+  ├──────────────────────────────┼──────────────────────────────────────────┤
+  │ updateItem(collection, id,   │ updateItem('assignments', id, { status:  │
+  │ changes)                     │ 'completed' })                           │
+  ├──────────────────────────────┼──────────────────────────────────────────┤
+  │ deleteItem(collection, id)   │ deleteItem('subjects', id)               │
+  └──────────────────────────────┴──────────────────────────────────────────┘
+
+❯ Now implement the Subject Manager feature. Required: Add a subect (input +    
+button), display all subjects, delete a subject. Use the localStorage helper    
+functions (getData, addItem, deleteItem). Update the UI dynamically when        
+subjects change. Keep everything inside script.js and connect it to the         
+existing HTML.                                                                  
+
+⏺ Let me re-read both files to see the current state before making changes.
+
+⏺ Read 2 files (ctrl+o to expand)
+
+⏺ I'll update all three files: replace the placeholder in index.html, add the
+  necessary styles to styles.css, and add the subjects feature logic to
+  script.js.
+
+⏺ Update(index.html)
+  ⎿  Added 9 lines, removed 3 lines
+      134          <i class="fa-solid fa-folder-open"></i> Subjects
+      135        </h2>
+      136        <p class="section-desc">Create and manage your courses a
+           nd subjects.</p>
+      137 -      <div class="placeholder-box">                           
+      138 -        <i class="fa-solid fa-hammer"></i>                    
+      139 -        <p>Subject manager coming soon.</p>                   
+      137 +                                                              
+      138 +      <div class="subject-form">                              
+      139 +        <input type="text" id="subject-input" class="form-inpu
+          +t" placeholder="e.g. Mathematics" maxlength="50" />           
+      140 +        <input type="color" id="subject-color" class="color-pi
+          +cker" value="#4f46e5" title="Pick a colour" />                
+      141 +        <button class="btn btn-add" id="add-subject-btn">     
+      142 +          <i class="fa-solid fa-plus"></i> Add Subject        
+      143 +        </button>                                             
+      144        </div>
+      145 +                                                              
+      146 +      <div id="subjects-list"></div>                          
+      147      </section>
+      148  
+      149    </main>
+
+⏺ Update(styles.css)
+  ⎿  Added 100 lines
+      306    font-size: 0.95rem;
+      307  }
+      308  
+      309 +/* ── Subject form ───────────────────────────────────────────
+          +── */                                                         
+      310 +.subject-form {                                               
+      311 +  display: flex;                                              
+      312 +  gap: 0.75rem;                                               
+      313 +  align-items: center;                                        
+      314 +  margin-bottom: 1.5rem;                                      
+      315 +  flex-wrap: wrap;                                            
+      316 +}                                                             
+      317 +                                                              
+      318 +.form-input {                                                 
+      319 +  flex: 1;                                                    
+      320 +  min-width: 180px;                                           
+      321 +  padding: 0.55rem 0.9rem;                                    
+      322 +  border: 1.5px solid var(--color-border);                    
+      323 +  border-radius: var(--radius-sm);                            
+      324 +  font-family: inherit;                                       
+      325 +  font-size: 0.9rem;                                          
+      326 +  color: var(--color-text);                                   
+      327 +  background: var(--color-surface);                           
+      328 +  outline: none;                                              
+      329 +  transition: border-color var(--transition);                 
+      330 +}                                                             
+      331 +                                                              
+      332 +.form-input:focus {                                           
+      333 +  border-color: var(--color-primary);                         
+      334 +}                                                             
+      335 +                                                              
+      336 +.color-picker {                                               
+      337 +  width: 2.4rem;                                              
+      338 +  height: 2.4rem;                                             
+      339 +  border: 1.5px solid var(--color-border);                    
+      340 +  border-radius: var(--radius-sm);                            
+      341 +  cursor: pointer;                                            
+      342 +  padding: 2px;                                               
+      343 +  background: var(--color-surface);                           
+      344 +}                                                             
+      345 +                                                              
+      346 +.btn-add {                                                    
+      347 +  background: var(--color-primary);                           
+      348 +  color: #fff;                                                
+      349 +  white-space: nowrap;                                        
+      350 +}                                                             
+      351 +                                                              
+      352 +.btn-add:hover {                                              
+      353 +  background: var(--color-primary-dk);                        
+      354 +  opacity: 1;                                                 
+      355 +}                                                             
+      356 +                                                              
+      357 +/* ── Subject cards ──────────────────────────────────────────
+          +── */                                                         
+      358 +.subjects-grid {                                              
+      359 +  display: grid;                                              
+      360 +  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr))
+          +;                                                             
+      361 +  gap: 1rem;                                                  
+      362 +}                                                             
+      363 +                                                              
+      364 +.subject-card {                                               
+      365 +  background: var(--color-surface);                           
+      366 +  border: 1px solid var(--color-border);                      
+      367 +  border-radius: var(--radius);                               
+      368 +  padding: 1.1rem 1.25rem;                                    
+      369 +  display: flex;                                              
+      370 +  align-items: center;                                        
+      371 +  gap: 0.85rem;                                               
+      372 +  box-shadow: var(--shadow-sm);                               
+      373 +}                                                             
+      374 +                                                              
+      375 +.subject-dot {                                                
+      376 +  width: 14px;                                                
+      377 +  height: 14px;                                               
+      378 +  border-radius: 50%;                                         
+      379 +  flex-shrink: 0;                                             
+      380 +}                                                             
+      381 +                                                              
+      382 +.subject-name {                                               
+      383 +  flex: 1;                                                    
+      384 +  font-size: 0.95rem;                                         
+      385 +  font-weight: 600;                                           
+      386 +  color: var(--color-text);                                   
+      387 +  overflow: hidden;                                           
+      388 +  text-overflow: ellipsis;                                    
+      389 +  white-space: nowrap;                                        
+      390 +}                                                             
+      391 +                                                              
+      392 +.btn-delete {                                                 
+      393 +  background: none;                                           
+      394 +  border: none;                                               
+      395 +  color: var(--color-text-muted);                             
+      396 +  cursor: pointer;                                            
+      397 +  font-size: 0.85rem;                                         
+      398 +  padding: 0.25rem;                                           
+      399 +  border-radius: var(--radius-sm);                            
+      400 +  transition: color var(--transition), background var(--transi
+          +tion);                                                        
+      401 +  line-height: 1;                                             
+      402 +}                                                             
+      403 +                                                              
+      404 +.btn-delete:hover {                                           
+      405 +  color: #ef4444;                                             
+      406 +  background: #fee2e2;                                        
+      407 +}                                                             
+      408 +                                                              
+      409  /* ── Footer ─────────────────────────────────────────────────
+           ── */
+      410  .footer {
+      411    text-align: center;
+
+⏺ Now add the subjects feature and dashboard stats logic to script.js:
+
+⏺ Update(script.js)
+  ⎿  Added 78 lines
+      115      showSection(link.dataset.section);
+      116    });
+      117  });
+      118 +                                                              
+      119 +// ----- Subjects -----                                       
+      120 +                                                              
+      121 +// Prevent XSS when injecting user input into innerHTML       
+      122 +function escapeHtml(str) {                                    
+      123 +  return str                                                  
+      124 +    .replace(/&/g, '&amp;')                                   
+      125 +    .replace(/</g, '&lt;')                                    
+      126 +    .replace(/>/g, '&gt;')                                    
+      127 +    .replace(/"/g, '&quot;');                                 
+      128 +}                                                             
+      129 +                                                              
+      130 +function renderSubjects() {                                   
+      131 +  const list = document.getElementById('subjects-list');      
+      132 +  const { subjects } = getData();                             
+      133 +                                                              
+      134 +  if (subjects.length === 0) {                                
+      135 +    list.innerHTML = `                                        
+      136 +      <div class="placeholder-box">                           
+      137 +        <i class="fa-solid fa-folder-open"></i>               
+      138 +        <p>No subjects yet. Add one above to get started!</p> 
+      139 +      </div>`;                                                
+      140 +    updateDashboardStats();                                   
+      141 +    return;                                                   
+      142 +  }                                                           
+      143 +                                                              
+      144 +  list.innerHTML = `                                          
+      145 +    <div class="subjects-grid">                               
+      146 +      ${subjects.map(s => `                                   
+      147 +        <div class="subject-card">                            
+      148 +          <span class="subject-dot" style="background:${s.colo
+          +r}"></span>                                                   
+      149 +          <span class="subject-name">${escapeHtml(s.name)}</sp
+          +an>                                                           
+      150 +          <button class="btn-delete" data-id="${s.id}" title="
+          +Delete subject" aria-label="Delete ${escapeHtml(s.name)}">    
+      151 +            <i class="fa-solid fa-trash"></i>                 
+      152 +          </button>                                           
+      153 +        </div>`).join('')}                                    
+      154 +    </div>`;                                                  
+      155 +                                                              
+      156 +  // Wire delete buttons after rendering                      
+      157 +  list.querySelectorAll('.btn-delete').forEach(btn => {       
+      158 +    btn.addEventListener('click', () => {                     
+      159 +      deleteItem('subjects', btn.dataset.id);                 
+      160 +      renderSubjects();                                       
+      161 +    });                                                       
+      162 +  });                                                         
+      163 +                                                              
+      164 +  updateDashboardStats();                                     
+      165 +}                                                             
+      166 +                                                              
+      167 +document.getElementById('add-subject-btn').addEventListener('c
+          +lick', () => {                                                
+      168 +  const input = document.getElementById('subject-input');     
+      169 +  const colorPicker = document.getElementById('subject-color')
+          +;                                                             
+      170 +  const name = input.value.trim();                            
+      171 +  if (!name) { input.focus(); return; }                       
+      172 +  addItem('subjects', { name, color: colorPicker.value });    
+      173 +  input.value = '';                                           
+      174 +  renderSubjects();                                           
+      175 +});                                                           
+      176 +                                                              
+      177 +// Allow submitting with Enter key                            
+      178 +document.getElementById('subject-input').addEventListener('key
+          +down', e => {                                                 
+      179 +  if (e.key === 'Enter') document.getElementById('add-subject-
+          +btn').click();                                                
+      180 +});                                                           
+      181 +                                                              
+      182 +// ----- Dashboard Stats -----                                
+      183 +                                                              
+      184 +function updateDashboardStats() {                             
+      185 +  const { subjects, assignments, sessions } = getData();      
+      186 +  const today = new Date().toISOString().slice(0, 10);        
+      187 +  document.getElementById('stat-subjects').textContent  = subj
+          +ects.length;                                                  
+      188 +  document.getElementById('stat-pending').textContent   = assi
+          +gnments.filter(a => a.status === 'pending').length;           
+      189 +  document.getElementById('stat-completed').textContent = assi
+          +gnments.filter(a => a.status === 'completed').length;         
+      190 +  document.getElementById('stat-sessions').textContent  = sess
+          +ions.filter(s => s.date === today).length;                    
+      191 +}                                                             
+      192 +                                                              
+      193 +// ----- Init -----                                           
+      194 +renderSubjects();                                             
+      195 +updateDashboardStats();                                       
+
+⏺ Here's what was built:
+
+  HTML (index.html) — replaced the placeholder in the Subjects section with a
+  text input, color picker, and Add button, plus an empty #subjects-list
+  container.
+
+  CSS (styles.css) — added .subject-form, .form-input, .color-picker, .btn-add,
+  .subjects-grid, .subject-card, .subject-dot, .subject-name, .btn-delete using
+  the existing CSS variables.
+
+  JS (script.js) — three additions:
+
+  ┌────────────────────────┬─────────────────────────────────────────────────┐
+  │          What          │                       How                       │
+  ├────────────────────────┼─────────────────────────────────────────────────┤
+  │                        │ Reads subjects from getData(), renders cards or │
+  │ renderSubjects()       │  an empty state, wires delete buttons after     │
+  │                        │ each render                                     │
+  ├────────────────────────┼─────────────────────────────────────────────────┤
+  │                        │ Validates the input isn't empty, calls          │
+  │ Add handler            │ addItem('subjects', {...}), clears the field,   │
+  │                        │ re-renders. Enter key also triggers it          │
+  ├────────────────────────┼─────────────────────────────────────────────────┤
+  │                        │ Updates all four stat counters (#stat-subjects, │
+  │ updateDashboardStats() │  #stat-pending, #stat-completed,                │
+  │                        │ #stat-sessions) from live localStorage data.    │
+  │                        │ Called on every render and on init              │
+  └────────────────────────┴─────────────────────────────────────────────────┘
+
+  User input is passed through escapeHtml() before being injected into innerHTML
+   to prevent XSS.
+
+✻ Cogitated for 1m 10s
+
+❯ Now implement the Assignment Manager feature. Requirements include: add an    
+assignment (title, subject dropdown, due date, priority), display all           
+assignments, mark assignment as completed, delete an assignment. Use the        
+existing localStorage helper functions (getData, addItem, updateItem,           
+deleteItem). Update the UI dynamically when assignments change. Keep everything 
+ inside script.js and connect it to the existing HTML. Also replace the         
+placeholder inside the assignments sections with the full UI.                   
+  ⎿  ⧉ Selected 160 lines from index.html in Visual Studio Code
+
+⏺ Let me read the current state of all three files first.
+
+⏺ Read 2 files (ctrl+o to expand)
+
+⏺ Good, I have everything I need. I'll update all three files: replace the
+  assignments placeholder in HTML, add styles for the form/filter/cards, and
+  implement the full JS feature.
+
+⏺ Update(index.html)
+  ⎿  Added 23 lines, removed 3 lines
+      110          <i class="fa-solid fa-list-check"></i> Assignments
+      111        </h2>
+      112        <p class="section-desc">Track what's due and mark tasks 
+           complete.</p>
+      113 -      <div class="placeholder-box">                           
+      114 -        <i class="fa-solid fa-hammer"></i>                    
+      115 -        <p>Assignment tracker coming soon.</p>                
+      113 +                                                              
+      114 +      <div class="assignment-form">                           
+      115 +        <input type="text" id="assignment-title" class="form-i
+          +nput" placeholder="Assignment title" maxlength="100" />       
+      116 +        <select id="assignment-subject" class="form-select">  
+      117 +          <option value="">No subject</option>                
+      118 +        </select>                                             
+      119 +        <input type="date" id="assignment-due" class="form-inp
+          +ut form-input--date" />                                       
+      120 +        <select id="assignment-priority" class="form-select"> 
+      121 +          <option value="medium">Medium</option>              
+      122 +          <option value="low">Low</option>                    
+      123 +          <option value="high">High</option>                  
+      124 +        </select>                                             
+      125 +        <button class="btn btn-add" id="add-assignment-btn">  
+      126 +          <i class="fa-solid fa-plus"></i> Add                
+      127 +        </button>                                             
+      128        </div>
+      129 +                                                              
+      130 +      <div class="filter-bar">                                
+      131 +        <button class="filter-btn active" data-filter="all">Al
+          +l</button>                                                    
+      132 +        <button class="filter-btn" data-filter="pending">Pendi
+          +ng</button>                                                   
+      133 +        <button class="filter-btn" data-filter="completed">Com
+          +pleted</button>                                               
+      134 +      </div>                                                  
+      135 +                                                              
+      136 +      <div id="assignments-list"></div>                       
+      137      </section>
+      138  
+      139      <!-- Timer Section -->
+
+⏺ Update(styles.css)
+  ⎿  Added 192 lines
+      406    background: #fee2e2;
+      407  }
+      408  
+      409 +/* ── Assignment form ────────────────────────────────────────
+          +── */                                                         
+      410 +.assignment-form {                                            
+      411 +  display: flex;                                              
+      412 +  gap: 0.75rem;                                               
+      413 +  flex-wrap: wrap;                                            
+      414 +  align-items: center;                                        
+      415 +  margin-bottom: 1rem;                                        
+      416 +}                                                             
+      417 +                                                              
+      418 +.form-select {                                                
+      419 +  padding: 0.55rem 0.75rem;                                   
+      420 +  border: 1.5px solid var(--color-border);                    
+      421 +  border-radius: var(--radius-sm);                            
+      422 +  font-family: inherit;                                       
+      423 +  font-size: 0.9rem;                                          
+      424 +  color: var(--color-text);                                   
+      425 +  background: var(--color-surface);                           
+      426 +  outline: none;                                              
+      427 +  cursor: pointer;                                            
+      428 +  transition: border-color var(--transition);                 
+      429 +}                                                             
+      430 +                                                              
+      431 +.form-select:focus {                                          
+      432 +  border-color: var(--color-primary);                         
+      433 +}                                                             
+      434 +                                                              
+      435 +/* ── Filter bar ─────────────────────────────────────────────
+          +── */                                                         
+      436 +.filter-bar {                                                 
+      437 +  display: flex;                                              
+      438 +  gap: 0.5rem;                                                
+      439 +  margin-bottom: 1.25rem;                                     
+      440 +  flex-wrap: wrap;                                            
+      441 +}                                                             
+      442 +                                                              
+      443 +.filter-btn {                                                 
+      444 +  padding: 0.4rem 1rem;                                       
+      445 +  border: 1.5px solid var(--color-border);                    
+      446 +  border-radius: var(--radius-sm);                            
+      447 +  background: var(--color-surface);                           
+      448 +  color: var(--color-text-muted);                             
+      449 +  font-family: inherit;                                       
+      450 +  font-size: 0.85rem;                                         
+      451 +  font-weight: 500;                                           
+      452 +  cursor: pointer;                                            
+      453 +  transition: all var(--transition);                          
+      454 +}                                                             
+      455 +                                                              
+      456 +.filter-btn:hover {                                           
+      457 +  border-color: var(--color-primary);                         
+      458 +  color: var(--color-primary);                                
+      459 +}                                                             
+      460 +                                                              
+      461 +.filter-btn.active {                                          
+      462 +  background: var(--color-primary);                           
+      463 +  border-color: var(--color-primary);                         
+      464 +  color: #fff;                                                
+      465 +}                                                             
+      466 +                                                              
+      467 +/* ── Assignment cards ───────────────────────────────────────
+          +── */                                                         
+      468 +.assignment-list {                                            
+      469 +  display: flex;                                              
+      470 +  flex-direction: column;                                     
+      471 +  gap: 0.65rem;                                               
+      472 +}                                                             
+      473 +                                                              
+      474 +.assignment-card {                                            
+      475 +  background: var(--color-surface);                           
+      476 +  border: 1px solid var(--color-border);                      
+      477 +  border-left: 4px solid var(--color-border);                 
+      478 +  border-radius: var(--radius);                               
+      479 +  padding: 0.9rem 1.1rem;                                     
+      480 +  display: flex;                                              
+      481 +  align-items: center;                                        
+      482 +  gap: 0.85rem;                                               
+      483 +  box-shadow: var(--shadow-sm);                               
+      484 +}                                                             
+      485 +                                                              
+      486 +.assignment-card.completed {                                  
+      487 +  opacity: 0.6;                                               
+      488 +}                                                             
+      489 +                                                              
+      490 +.assignment-card[data-priority="high"]   { border-left-color: 
+          +#ef4444; }                                                    
+      491 +.assignment-card[data-priority="medium"] { border-left-color: 
+          +#f59e0b; }                                                    
+      492 +.assignment-card[data-priority="low"]    { border-left-color: 
+          +#22c55e; }                                                    
+      493 +                                                              
+      494 +.btn-complete {                                               
+      495 +  width: 1.35rem;                                             
+      496 +  height: 1.35rem;                                            
+      497 +  flex-shrink: 0;                                             
+      498 +  border: 2px solid var(--color-border);                      
+      499 +  border-radius: 50%;                                         
+      500 +  background: none;                                           
+      501 +  cursor: pointer;                                            
+      502 +  display: flex;                                              
+      503 +  align-items: center;                                        
+      504 +  justify-content: center;                                    
+      505 +  color: transparent;                                         
+      506 +  padding: 0;                                                 
+      507 +  transition: all var(--transition);                          
+      508 +}                                                             
+      509 +                                                              
+      510 +.btn-complete:hover {                                         
+      511 +  border-color: var(--color-success);                         
+      512 +  color: var(--color-success);                                
+      513 +}                                                             
+      514 +                                                              
+      515 +.assignment-card.completed .btn-complete {                    
+      516 +  background: var(--color-success);                           
+      517 +  border-color: var(--color-success);                         
+      518 +  color: #fff;                                                
+      519 +}                                                             
+      520 +                                                              
+      521 +.assignment-body {                                            
+      522 +  flex: 1;                                                    
+      523 +  min-width: 0;                                               
+      524 +}                                                             
+      525 +                                                              
+      526 +.assignment-title {                                           
+      527 +  font-size: 0.95rem;                                         
+      528 +  font-weight: 600;                                           
+      529 +  color: var(--color-text);                                   
+      530 +  white-space: nowrap;                                        
+      531 +  overflow: hidden;                                           
+      532 +  text-overflow: ellipsis;                                    
+      533 +}                                                             
+      534 +                                                              
+      535 +.assignment-card.completed .assignment-title {                
+      536 +  text-decoration: line-through;                              
+      537 +  color: var(--color-text-muted);                             
+      538 +}                                                             
+      539 +                                                              
+      540 +.assignment-meta {                                            
+      541 +  display: flex;                                              
+      542 +  align-items: center;                                        
+      543 +  gap: 0.6rem;                                                
+      544 +  margin-top: 0.25rem;                                        
+      545 +  font-size: 0.78rem;                                         
+      546 +  color: var(--color-text-muted);                             
+      547 +  flex-wrap: wrap;                                            
+      548 +}                                                             
+      549 +                                                              
+      550 +.priority-badge {                                             
+      551 +  font-size: 0.7rem;                                          
+      552 +  font-weight: 600;                                           
+      553 +  padding: 0.1rem 0.5rem;                                     
+      554 +  border-radius: 999px;                                       
+      555 +  text-transform: uppercase;                                  
+      556 +  letter-spacing: 0.04em;                                     
+      557 +}                                                             
+      558 +                                                              
+      559 +.priority-badge--high   { background: #fee2e2; color: #dc2626;
+          + }                                                            
+      560 +.priority-badge--medium { background: #fef3c7; color: #d97706;
+          + }                                                            
+      561 +.priority-badge--low    { background: #dcfce7; color: #16a34a;
+          + }                                                            
+      562 +                                                              
+      563 +/* ── Upcoming list (dashboard) ──────────────────────────────
+          +── */                                                         
+      564 +.upcoming-item {                                              
+      565 +  background: var(--color-surface);                           
+      566 +  border: 1px solid var(--color-border);                      
+      567 +  border-left: 4px solid var(--color-border);                 
+      568 +  border-radius: var(--radius);                               
+      569 +  padding: 0.75rem 1rem;                                      
+      570 +  display: flex;                                              
+      571 +  align-items: center;                                        
+      572 +  gap: 0.75rem;                                               
+      573 +  font-size: 0.9rem;                                          
+      574 +}                                                             
+      575 +                                                              
+      576 +.upcoming-item[data-priority="high"]   { border-left-color: #e
+          +f4444; }                                                      
+      577 +.upcoming-item[data-priority="medium"] { border-left-color: #f
+          +59e0b; }                                                      
+      578 +.upcoming-item[data-priority="low"]    { border-left-color: #2
+          +2c55e; }                                                      
+      579 +                                                              
+      580 +.upcoming-list-inner {                                        
+      581 +  display: flex;                                              
+      582 +  flex-direction: column;                                     
+      583 +  gap: 0.6rem;                                                
+      584 +}                                                             
+      585 +                                                              
+      586 +.upcoming-item-title {                                        
+      587 +  flex: 1;                                                    
+      588 +  font-weight: 600;                                           
+      589 +  color: var(--color-text);                                   
+      590 +  white-space: nowrap;                                        
+      591 +  overflow: hidden;                                           
+      592 +  text-overflow: ellipsis;                                    
+      593 +}                                                             
+      594 +                                                              
+      595 +.upcoming-item-due {                                          
+      596 +  font-size: 0.78rem;                                         
+      597 +  color: var(--color-text-muted);                             
+      598 +  white-space: nowrap;                                        
+      599 +}                                                             
+      600 +                                                              
+      601  /* ── Footer ─────────────────────────────────────────────────
+           ── */
+      602  .footer {
+      603    text-align: center;
+
+⏺ Now add the assignments JS and update the init + renderSubjects to keep the
+  subject dropdown in sync:
+
+⏺ Update(script.js)
+  ⎿  Added 175 lines
+      179    if (e.key === 'Enter') document.getElementById('add-subject-
+           btn').click();
+      180  });
+      181  
+      182 +// ----- Assignments -----                                    
+      183 +                                                              
+      184 +let assignmentFilter = 'all';                                 
+      185 +                                                              
+      186 +// Sync the subject <select> with current subjects in storage 
+      187 +function populateSubjectDropdown() {                          
+      188 +  const select = document.getElementById('assignment-subject')
+          +;                                                             
+      189 +  const { subjects } = getData();                             
+      190 +  select.innerHTML =                                          
+      191 +    '<option value="">No subject</option>' +                  
+      192 +    subjects.map(s => `<option value="${s.id}">${escapeHtml(s.
+          +name)}</option>`).join('');                                   
+      193 +}                                                             
+      194 +                                                              
+      195 +function renderAssignments() {                                
+      196 +  const list = document.getElementById('assignments-list');   
+      197 +  const { assignments, subjects } = getData();                
+      198 +                                                              
+      199 +  const filtered = assignments.filter(a => {                  
+      200 +    if (assignmentFilter === 'pending')   return a.status === 
+          +'pending';                                                    
+      201 +    if (assignmentFilter === 'completed') return a.status === 
+          +'completed';                                                  
+      202 +    return true;                                              
+      203 +  });                                                         
+      204 +                                                              
+      205 +  if (filtered.length === 0) {                                
+      206 +    const msg =                                               
+      207 +      assignmentFilter === 'completed' ? 'No completed assignm
+          +ents yet.' :                                                  
+      208 +      assignmentFilter === 'pending'   ? 'No pending assignmen
+          +ts. All done!' :                                              
+      209 +                                         'No assignments yet. 
+          +Add one above to get started!';                               
+      210 +    list.innerHTML = `                                        
+      211 +      <div class="placeholder-box">                           
+      212 +        <i class="fa-solid fa-list-check"></i>                
+      213 +        <p>${msg}</p>                                         
+      214 +      </div>`;                                                
+      215 +    updateDashboardStats();                                   
+      216 +    return;                                                   
+      217 +  }                                                           
+      218 +                                                              
+      219 +  // Sort: pending first, then by due date ascending; no due d
+          +ate goes last                                                 
+      220 +  const sorted = [...filtered].sort((a, b) => {               
+      221 +    if (a.status !== b.status) return a.status === 'pending' ?
+          + -1 : 1;                                                      
+      222 +    if (!a.dueDate && !b.dueDate) return 0;                   
+      223 +    if (!a.dueDate) return 1;                                 
+      224 +    if (!b.dueDate) return -1;                                
+      225 +    return a.dueDate.localeCompare(b.dueDate);                
+      226 +  });                                                         
+      227 +                                                              
+      228 +  list.innerHTML = `                                          
+      229 +    <div class="assignment-list">                             
+      230 +      ${sorted.map(a => {                                     
+      231 +        const subject     = subjects.find(s => s.id === a.subj
+          +ectId) || null;                                               
+      232 +        const isCompleted = a.status === 'completed';         
+      233 +        const dueDateStr  = a.dueDate                         
+      234 +          ? new Date(a.dueDate + 'T00:00:00').toLocaleDateStri
+          +ng('en-US', { month: 'short', day: 'numeric', year: 'numeric' 
+          +})                                                            
+      235 +          : '';                                               
+      236 +        const subjectHtml = subject                           
+      237 +          ? `<span style="display:inline-flex;align-items:cent
+          +er;gap:0.3rem">                                               
+      238 +               <span style="width:8px;height:8px;border-radius
+          +:50%;background:${subject.color};display:inline-block"></span>
+      239 +               ${escapeHtml(subject.name)}                    
+      240 +             </span>`                                         
+      241 +          : '';                                               
+      242 +        const dateHtml = dueDateStr                           
+      243 +          ? `<span><i class="fa-regular fa-calendar" style="ma
+          +rgin-right:0.2rem"></i>${dueDateStr}</span>`                  
+      244 +          : '';                                               
+      245 +        return `                                              
+      246 +          <div class="assignment-card ${isCompleted ? 'complet
+          +ed' : ''}" data-priority="${a.priority}" data-id="${a.id}">   
+      247 +            <button class="btn-complete" data-id="${a.id}" tit
+          +le="${isCompleted ? 'Mark pending' : 'Mark complete'}" aria-la
+          +bel="Toggle completion">                                      
+      248 +              ${isCompleted ? '<i class="fa-solid fa-check" st
+          +yle="font-size:0.65rem"></i>' : ''}                           
+      249 +            </button>                                         
+      250 +            <div class="assignment-body">                     
+      251 +              <div class="assignment-title">${escapeHtml(a.tit
+          +le)}</div>                                                    
+      252 +              <div class="assignment-meta">                   
+      253 +                ${subjectHtml}                                
+      254 +                ${dateHtml}                                   
+      255 +                <span class="priority-badge priority-badge--${
+          +a.priority}">${a.priority}</span>                             
+      256 +              </div>                                          
+      257 +            </div>                                            
+      258 +            <button class="btn-delete" data-id="${a.id}" title
+          +="Delete assignment" aria-label="Delete ${escapeHtml(a.title)}
+          +">                                                            
+      259 +              <i class="fa-solid fa-trash"></i>               
+      260 +            </button>                                         
+      261 +          </div>`;                                            
+      262 +      }).join('')}                                            
+      263 +    </div>`;                                                  
+      264 +                                                              
+      265 +  // Wire complete toggles                                    
+      266 +  list.querySelectorAll('.btn-complete').forEach(btn => {     
+      267 +    btn.addEventListener('click', () => {                     
+      268 +      const current = getData().assignments.find(x => x.id ===
+          + btn.dataset.id);                                             
+      269 +      if (!current) return;                                   
+      270 +      updateItem('assignments', btn.dataset.id, {             
+      271 +        status: current.status === 'completed' ? 'pending' : '
+          +completed',                                                   
+      272 +      });                                                     
+      273 +      renderAssignments();                                    
+      274 +    });                                                       
+      275 +  });                                                         
+      276 +                                                              
+      277 +  // Wire delete buttons                                      
+      278 +  list.querySelectorAll('.btn-delete').forEach(btn => {       
+      279 +    btn.addEventListener('click', () => {                     
+      280 +      deleteItem('assignments', btn.dataset.id);              
+      281 +      renderAssignments();                                    
+      282 +    });                                                       
+      283 +  });                                                         
+      284 +                                                              
+      285 +  updateDashboardStats();                                     
+      286 +}                                                             
+      287 +                                                              
+      288 +document.getElementById('add-assignment-btn').addEventListener
+          +('click', () => {                                             
+      289 +  const titleInput = document.getElementById('assignment-title
+          +');                                                           
+      290 +  const title      = titleInput.value.trim();                 
+      291 +  if (!title) { titleInput.focus(); return; }                 
+      292 +                                                              
+      293 +  addItem('assignments', {                                    
+      294 +    title,                                                    
+      295 +    subjectId: document.getElementById('assignment-subject').v
+          +alue || null,                                                 
+      296 +    dueDate:   document.getElementById('assignment-due').value
+          +    || null,                                                  
+      297 +    priority:  document.getElementById('assignment-priority').
+          +value,                                                        
+      298 +    status:    'pending',                                     
+      299 +    notes:     '',                                            
+      300 +  });                                                         
+      301 +                                                              
+      302 +  titleInput.value = '';                                      
+      303 +  document.getElementById('assignment-due').value = '';       
+      304 +  renderAssignments();                                        
+      305 +});                                                           
+      306 +                                                              
+      307 +document.getElementById('assignment-title').addEventListener('
+          +keydown', e => {                                              
+      308 +  if (e.key === 'Enter') document.getElementById('add-assignme
+          +nt-btn').click();                                             
+      309 +});                                                           
+      310 +                                                              
+      311 +// Filter buttons                                             
+      312 +document.querySelectorAll('.filter-btn').forEach(btn => {     
+      313 +  btn.addEventListener('click', () => {                       
+      314 +    assignmentFilter = btn.dataset.filter;                    
+      315 +    document.querySelectorAll('.filter-btn').forEach(b => b.cl
+          +assList.remove('active'));                                    
+      316 +    btn.classList.add('active');                              
+      317 +    renderAssignments();                                      
+      318 +  });                                                         
+      319 +});                                                           
+      320 +                                                              
+      321  // ----- Dashboard Stats -----
+      322  
+      323  function updateDashboardStats() {
+      324    const { subjects, assignments, sessions } = getData();
+      325    const today = new Date().toISOString().slice(0, 10);
+      326 +                                                              
+      327    document.getElementById('stat-subjects').textContent  = subj
+           ects.length;
+      328    document.getElementById('stat-pending').textContent   = assi
+           gnments.filter(a => a.status === 'pending').length;
+      329    document.getElementById('stat-completed').textContent = assi
+           gnments.filter(a => a.status === 'completed').length;
+      330    document.getElementById('stat-sessions').textContent  = sess
+           ions.filter(s => s.date === today).length;
+      331 +                                                              
+      332 +  // Upcoming assignments — next 3 pending sorted by due date 
+      333 +  const upcomingEl = document.getElementById('upcoming-list');
+      334 +  const pending = assignments                                 
+      335 +    .filter(a => a.status === 'pending' && a.dueDate)         
+      336 +    .sort((a, b) => a.dueDate.localeCompare(b.dueDate))       
+      337 +    .slice(0, 3);                                             
+      338 +                                                              
+      339 +  if (pending.length === 0) {                                 
+      340 +    upcomingEl.innerHTML = `                                  
+      341 +      <div class="placeholder-box">                           
+      342 +        <i class="fa-solid fa-inbox"></i>                     
+      343 +        <p>No upcoming assignments. Add one to get started!</p
+          +>                                                             
+      344 +      </div>`;                                                
+      345 +    return;                                                   
+      346 +  }                                                           
+      347 +                                                              
+      348 +  upcomingEl.innerHTML = `                                    
+      349 +    <div class="upcoming-list-inner">                         
+      350 +      ${pending.map(a => {                                    
+      351 +        const subject    = subjects.find(s => s.id === a.subje
+          +ctId) || null;                                                
+      352 +        const dueDateStr = new Date(a.dueDate + 'T00:00:00').t
+          +oLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          +;                                                             
+      353 +        const dotHtml    = subject                            
+      354 +          ? `<span style="width:8px;height:8px;border-radius:5
+          +0%;background:${subject.color};display:inline-block;flex-shrin
+          +k:0"></span>`                                                 
+      355 +          : '';                                               
+      356 +        return `                                              
+      357 +          <div class="upcoming-item" data-priority="${a.priori
+          +ty}">                                                         
+      358 +            ${dotHtml}                                        
+      359 +            <span class="upcoming-item-title">${escapeHtml(a.t
+          +itle)}</span>                                                 
+      360 +            <span class="upcoming-item-due"><i class="fa-regul
+          +ar fa-calendar" style="margin-right:0.2rem"></i>${dueDateStr}<
+          +/span>                                                        
+      361 +          </div>`;                                            
+      362 +      }).join('')}                                            
+      363 +    </div>`;                                                  
+      364  }
+      365  
+      366  // ----- Init -----
+      367 +populateSubjectDropdown();                                    
+      368  renderSubjects();
+      369 +renderAssignments();                                          
+      370  updateDashboardStats();
+
+⏺ Finally, update renderSubjects to re-sync the subject dropdown whenever
+  subjects change:
+
+⏺ Update(script.js)
+  ⎿  Added 1 line
+      172    addItem('subjects', { name, color: colorPicker.value });
+      173    input.value = '';
+      174    renderSubjects();
+      175 +  populateSubjectDropdown();                                  
+      176  });
+      177  
+      178  // Allow submitting with Enter key
+
+⏺ Also sync the dropdown when a subject is deleted — update the delete handler
+  inside renderSubjects:
+
+⏺ Update(script.js)
+  ⎿  Added 1 line
+      158      btn.addEventListener('click', () => {
+      159        deleteItem('subjects', btn.dataset.id);
+      160        renderSubjects();
+      161 +      populateSubjectDropdown();                              
+      162      });
+      163    });
+      164  
+
+⏺ Here's a summary of everything built:
+
+  HTML — replaced the assignments placeholder with a 5-field form (title,
+  subject dropdown, due date, priority, add button) + filter bar +
+  #assignments-list container.
+
+  CSS — added styles for:
+  - .assignment-form — flex wrap row
+  - .form-select — consistent input styling
+  - .filter-bar / .filter-btn / .filter-btn.active — pill toggle group
+  - .assignment-card — left border changes color by priority (red/amber/green)
+  - .btn-complete — circular toggle, fills green when completed
+  - .assignment-title — line-through when completed
+  - .priority-badge — color-coded pill
+  - .upcoming-item / .upcoming-list-inner — dashboard upcoming list cards
+
+  JS — four additions:
+
+  ┌───────────────────────────┬──────────────────────────────────────────────┐
+  │           What            │                    Detail                    │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │ populateSubjectDropdown() │ Rebuilds the <select> from live subjects.    │
+  │                           │ Called on init, add-subject, delete-subject  │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │                           │ Filters by assignmentFilter, sorts           │
+  │ renderAssignments()       │ pending-first then by due date, renders      │
+  │                           │ cards with complete toggle + delete. Shows   │
+  │                           │ contextual empty states                      │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │ Add handler               │ Validates title, calls addItem, resets title │
+  │                           │  + date fields, re-renders                   │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │                           │ Now also renders the Upcoming Assignments    │
+  │ updateDashboardStats()    │ list on the dashboard — shows next 3 pending │
+  │                           │  items sorted by due date                    │
+  └───────────────────────────┴──────────────────────────────────────────────┘
+
+✻ Cogitated for 2m 8s
+
+❯ Now implement the Timer feature. Requirements include: Countdown display      
+(mm:ss), Start, Pause, Reset buttons. Start begins the countdown, Pause pasues  
+it, Reset restores initial time. When timer reaches 0, log a session in         
+localStorage 'sessions' with date and duration, then call                       
+updateDashboardStats(). Keep everything inside script.js and connect it to the  
+existing HTML. Update the HTML by replacing the TImer placeholder. Use simple   
+vanilla JS, add minimal CSS classes for styling, inlude brief moments for       
+clarity.                                                                        
+
+⏺ Read 2 files (ctrl+o to expand)
+
+⏺ Good, I have everything I need. I'll update the HTML timer placeholder, add
+  CSS for the timer card, and implement the full JS logic.
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Update(index.html)
+  ⎿  Added 31 lines, removed 4 lines
+      141        <h2 class="section-title">
+      142          <i class="fa-solid fa-clock"></i> Study Timer
+      143        </h2>
+      144 -      <p class="section-desc">Use focused Pomodoro sessions to
+          - study smarter.</p>                                           
+      145 -      <div class="placeholder-box">                           
+      146 -        <i class="fa-solid fa-hammer"></i>                    
+      147 -        <p>Pomodoro timer coming soon.</p>                    
+      144 +      <p class="section-desc">Use focused sessions to study sm
+          +arter. Sessions are logged automatically when the timer finish
+          +es.</p>                                                       
+      145 +                                                              
+      146 +      <div class="timer-card">                                
+      147 +                                                              
+      148 +        <!-- Duration presets + custom input -->              
+      149 +        <div class="timer-presets">                           
+      150 +          <button class="timer-preset active" data-minutes="25
+          +">25 min</button>                                             
+      151 +          <button class="timer-preset" data-minutes="10">10 mi
+          +n</button>                                                    
+      152 +          <button class="timer-preset" data-minutes="5">5 min<
+          +/button>                                                      
+      153 +          <input type="number" id="timer-custom" class="form-i
+          +nput timer-custom-input" placeholder="Custom (min)" min="1" ma
+          +x="180" />                                                    
+      154 +        </div>                                                
+      155 +                                                              
+      156 +        <!-- Countdown display -->                            
+      157 +        <div class="timer-display" id="timer-display">25:00</d
+          +iv>                                                           
+      158 +                                                              
+      159 +        <!-- Controls -->                                     
+      160 +        <div class="timer-controls">                          
+      161 +          <button class="btn timer-btn-start" id="timer-start"
+          +>                                                             
+      162 +            <i class="fa-solid fa-play"></i> Start            
+      163 +          </button>                                           
+      164 +          <button class="btn timer-btn-pause" id="timer-pause"
+          + disabled>                                                    
+      165 +            <i class="fa-solid fa-pause"></i> Pause           
+      166 +          </button>                                           
+      167 +          <button class="btn timer-btn-reset" id="timer-reset"
+          +>                                                             
+      168 +            <i class="fa-solid fa-rotate-left"></i> Reset     
+      169 +          </button>                                           
+      170 +        </div>                                                
+      171 +                                                              
+      172 +        <!-- Status message (paused / session complete) -->   
+      173 +        <p class="timer-status" id="timer-status"></p>        
+      174 +                                                              
+      175        </div>
+      176      </section>
+      177  
+
+⏺ Update(styles.css)
+  ⎿  Added 116 lines
+      560  .priority-badge--medium { background: #fef3c7; color: #d97706;
+            }
+      561  .priority-badge--low    { background: #dcfce7; color: #16a34a;
+            }
+      562  
+      563 +/* ── Timer ──────────────────────────────────────────────────
+          +── */                                                         
+      564 +.timer-card {                                                 
+      565 +  background: var(--color-surface);                           
+      566 +  border: 1px solid var(--color-border);                      
+      567 +  border-radius: var(--radius);                               
+      568 +  padding: 2.5rem 2rem;                                       
+      569 +  max-width: 440px;                                           
+      570 +  display: flex;                                              
+      571 +  flex-direction: column;                                     
+      572 +  align-items: center;                                        
+      573 +  gap: 1.75rem;                                               
+      574 +  box-shadow: var(--shadow-md);                               
+      575 +}                                                             
+      576 +                                                              
+      577 +.timer-presets {                                              
+      578 +  display: flex;                                              
+      579 +  gap: 0.5rem;                                                
+      580 +  align-items: center;                                        
+      581 +  flex-wrap: wrap;                                            
+      582 +  justify-content: center;                                    
+      583 +}                                                             
+      584 +                                                              
+      585 +.timer-preset {                                               
+      586 +  padding: 0.4rem 0.9rem;                                     
+      587 +  border: 1.5px solid var(--color-border);                    
+      588 +  border-radius: var(--radius-sm);                            
+      589 +  background: var(--color-surface);                           
+      590 +  color: var(--color-text-muted);                             
+      591 +  font-family: inherit;                                       
+      592 +  font-size: 0.85rem;                                         
+      593 +  font-weight: 500;                                           
+      594 +  cursor: pointer;                                            
+      595 +  transition: all var(--transition);                          
+      596 +}                                                             
+      597 +                                                              
+      598 +.timer-preset:hover {                                         
+      599 +  border-color: var(--color-primary);                         
+      600 +  color: var(--color-primary);                                
+      601 +}                                                             
+      602 +                                                              
+      603 +.timer-preset.active {                                        
+      604 +  background: var(--color-primary);                           
+      605 +  border-color: var(--color-primary);                         
+      606 +  color: #fff;                                                
+      607 +}                                                             
+      608 +                                                              
+      609 +.timer-custom-input {                                         
+      610 +  width: 130px;                                               
+      611 +  flex: none;                                                 
+      612 +  text-align: center;                                         
+      613 +}                                                             
+      614 +                                                              
+      615 +/* Large countdown digits */                                  
+      616 +.timer-display {                                              
+      617 +  font-size: 4.5rem;                                          
+      618 +  font-weight: 700;                                           
+      619 +  letter-spacing: 0.05em;                                     
+      620 +  font-variant-numeric: tabular-nums;                         
+      621 +  color: var(--color-text);                                   
+      622 +  line-height: 1;                                             
+      623 +  transition: color var(--transition);                        
+      624 +}                                                             
+      625 +                                                              
+      626 +.timer-display.running  { color: var(--color-primary); }      
+      627 +.timer-display.finished { color: var(--color-success);  }     
+      628 +                                                              
+      629 +.timer-controls {                                             
+      630 +  display: flex;                                              
+      631 +  gap: 0.75rem;                                               
+      632 +  flex-wrap: wrap;                                            
+      633 +  justify-content: center;                                    
+      634 +}                                                             
+      635 +                                                              
+      636 +.timer-btn-start {                                            
+      637 +  background: var(--color-primary);                           
+      638 +  color: #fff;                                                
+      639 +}                                                             
+      640 +                                                              
+      641 +.timer-btn-start:hover  { background: var(--color-primary-dk);
+          + opacity: 1; }                                                
+      642 +                                                              
+      643 +.timer-btn-pause {                                            
+      644 +  background: var(--color-warning);                           
+      645 +  color: #fff;                                                
+      646 +}                                                             
+      647 +                                                              
+      648 +.timer-btn-pause:disabled {                                   
+      649 +  opacity: 0.4;                                               
+      650 +  cursor: not-allowed;                                        
+      651 +  transform: none;                                            
+      652 +}                                                             
+      653 +                                                              
+      654 +.timer-btn-reset {                                            
+      655 +  background: var(--color-surface);                           
+      656 +  color: var(--color-text-muted);                             
+      657 +  border: 1.5px solid var(--color-border);                    
+      658 +}                                                             
+      659 +                                                              
+      660 +.timer-btn-reset:hover {                                      
+      661 +  border-color: var(--color-text-muted);                      
+      662 +  color: var(--color-text);                                   
+      663 +  opacity: 1;                                                 
+      664 +}                                                             
+      665 +                                                              
+      666 +/* Status line below buttons */                               
+      667 +.timer-status {                                               
+      668 +  font-size: 0.88rem;                                         
+      669 +  color: var(--color-text-muted);                             
+      670 +  min-height: 1.2em;                                          
+      671 +  text-align: center;                                         
+      672 +}                                                             
+      673 +                                                              
+      674 +.timer-status.success {                                       
+      675 +  color: var(--color-success);                                
+      676 +  font-weight: 500;                                           
+      677 +}                                                             
+      678 +                                                              
+      679  /* ── Upcoming list (dashboard) ──────────────────────────────
+           ── */
+      680  .upcoming-item {
+      681    background: var(--color-surface);
+
+⏺ Now add the timer JS before the Dashboard Stats section:
+
+⏺ Update(script.js)
+  ⎿  Added 124 lines
+      320    });
+      321  });
+      322  
+      323 +// ----- Timer -----                                          
+      324 +                                                              
+      325 +// State                                                      
+      326 +let timerDuration  = 25 * 60; // seconds — matches the default
+          + "25 min" preset                                              
+      327 +let timerRemaining = timerDuration;                           
+      328 +let timerInterval  = null;                                    
+      329 +let timerRunning   = false;                                   
+      330 +                                                              
+      331 +// Returns "mm:ss" string from a seconds value                
+      332 +function formatTime(seconds) {                                
+      333 +  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+      334 +  const s = String(seconds % 60).padStart(2, '0');            
+      335 +  return `${m}:${s}`;                                         
+      336 +}                                                             
+      337 +                                                              
+      338 +// Syncs the countdown text and colour class with current stat
+          +e                                                             
+      339 +function updateTimerDisplay() {                               
+      340 +  const display = document.getElementById('timer-display');   
+      341 +  display.textContent = formatTime(timerRemaining);           
+      342 +  display.classList.toggle('running',  timerRunning && timerRe
+          +maining > 0);                                                 
+      343 +  display.classList.toggle('finished', timerRemaining === 0); 
+      344 +}                                                             
+      345 +                                                              
+      346 +// Sets a new duration; only allowed while the timer is stoppe
+          +d                                                             
+      347 +function setTimerDuration(seconds) {                          
+      348 +  if (timerRunning) return;                                   
+      349 +  timerDuration  = seconds;                                   
+      350 +  timerRemaining = seconds;                                   
+      351 +  clearStatusMessage();                                       
+      352 +  updateTimerDisplay();                                       
+      353 +}                                                             
+      354 +                                                              
+      355 +function clearStatusMessage() {                               
+      356 +  const s = document.getElementById('timer-status');          
+      357 +  s.textContent = '';                                         
+      358 +  s.className   = 'timer-status';                             
+      359 +}                                                             
+      360 +                                                              
+      361 +function startTimer() {                                       
+      362 +  if (timerRunning || timerRemaining === 0) return;           
+      363 +                                                              
+      364 +  timerRunning = true;                                        
+      365 +  document.getElementById('timer-start').disabled = true;     
+      366 +  document.getElementById('timer-pause').disabled = false;    
+      367 +  clearStatusMessage();                                       
+      368 +  updateTimerDisplay();                                       
+      369 +                                                              
+      370 +  timerInterval = setInterval(() => {                         
+      371 +    timerRemaining--;                                         
+      372 +    updateTimerDisplay();                                     
+      373 +                                                              
+      374 +    if (timerRemaining === 0) {                               
+      375 +      // Timer finished — clean up and log the session        
+      376 +      clearInterval(timerInterval);                           
+      377 +      timerInterval = null;                                   
+      378 +      timerRunning  = false;                                  
+      379 +      document.getElementById('timer-start').disabled = false;
+      380 +      document.getElementById('timer-pause').disabled = true; 
+      381 +      onTimerFinish();                                        
+      382 +    }                                                         
+      383 +  }, 1000);                                                   
+      384 +}                                                             
+      385 +                                                              
+      386 +function pauseTimer() {                                       
+      387 +  if (!timerRunning) return;                                  
+      388 +  clearInterval(timerInterval);                               
+      389 +  timerInterval = null;                                       
+      390 +  timerRunning  = false;                                      
+      391 +  document.getElementById('timer-start').disabled = false;    
+      392 +  document.getElementById('timer-pause').disabled = true;     
+      393 +  updateTimerDisplay();                                       
+      394 +  document.getElementById('timer-status').textContent = 'Pause
+          +d — press Start to resume.';                                  
+      395 +}                                                             
+      396 +                                                              
+      397 +function resetTimer() {                                       
+      398 +  clearInterval(timerInterval);                               
+      399 +  timerInterval  = null;                                      
+      400 +  timerRunning   = false;                                     
+      401 +  timerRemaining = timerDuration;                             
+      402 +  document.getElementById('timer-start').disabled = false;    
+      403 +  document.getElementById('timer-pause').disabled = true;     
+      404 +  clearStatusMessage();                                       
+      405 +  updateTimerDisplay();                                       
+      406 +}                                                             
+      407 +                                                              
+      408 +// Called when the countdown hits 0 — logs session and notifie
+          +s the user                                                    
+      409 +function onTimerFinish() {                                    
+      410 +  addItem('sessions', {                                       
+      411 +    subjectId: null,                                          
+      412 +    duration:  timerDuration,                                 
+      413 +    date:      new Date().toISOString().slice(0, 10),         
+      414 +  });                                                         
+      415 +  updateDashboardStats();                                     
+      416 +                                                              
+      417 +  const statusEl = document.getElementById('timer-status');   
+      418 +  statusEl.textContent = `Session complete! ${formatTime(timer
+          +Duration)} logged to your dashboard.`;                        
+      419 +  statusEl.className   = 'timer-status success';              
+      420 +}                                                             
+      421 +                                                              
+      422 +// Button listeners                                           
+      423 +document.getElementById('timer-start').addEventListener('click
+          +', startTimer);                                               
+      424 +document.getElementById('timer-pause').addEventListener('click
+          +', pauseTimer);                                               
+      425 +document.getElementById('timer-reset').addEventListener('click
+          +', resetTimer);                                               
+      426 +                                                              
+      427 +// Preset buttons — set duration and mark active              
+      428 +document.querySelectorAll('.timer-preset').forEach(btn => {   
+      429 +  btn.addEventListener('click', () => {                       
+      430 +    if (timerRunning) return; // ignore clicks while running  
+      431 +    document.querySelectorAll('.timer-preset').forEach(b => b.
+          +classList.remove('active'));                                  
+      432 +    btn.classList.add('active');                              
+      433 +    document.getElementById('timer-custom').value = '';       
+      434 +    setTimerDuration(Number(btn.dataset.minutes) * 60);       
+      435 +  });                                                         
+      436 +});                                                           
+      437 +                                                              
+      438 +// Custom duration — read on Enter or blur; clamp to 1–180 min
+      439 +document.getElementById('timer-custom').addEventListener('chan
+          +ge', () => {                                                  
+      440 +  const raw     = parseInt(document.getElementById('timer-cust
+          +om').value, 10);                                              
+      441 +  if (!raw || raw < 1) return;                                
+      442 +  const minutes = Math.min(raw, 180);                         
+      443 +  document.querySelectorAll('.timer-preset').forEach(b => b.cl
+          +assList.remove('active'));                                    
+      444 +  setTimerDuration(minutes * 60);                             
+      445 +});                                                           
+      446 +                                                              
+      447  // ----- Dashboard Stats -----
+      448  
+      449  function updateDashboardStats() {
+
+⏺ Here's a summary of everything built:
+
+  HTML — replaced the timer placeholder with a self-contained .timer-card
+  containing:
+  - Preset buttons (25 min, 10 min, 5 min) + custom number input
+  - Large #timer-display for the countdown
+  - Start / Pause / Reset buttons (Pause starts disabled)
+  - #timer-status paragraph for feedback messages
+
+  CSS — added styles for the timer card:
+  - .timer-display — 4.5rem tabular-nums font; turns indigo (.running) or green
+  (.finished)
+  - .timer-preset.active — filled indigo, same style as filter buttons
+  - .timer-btn-pause:disabled — faded, no cursor, no hover lift
+  - .timer-status.success — green bold message on completion
+
+  JS — the timer state and logic:
+
+  ┌─────────────────┬────────────────────────────────────────────────────────┐
+  │      What       │                         Detail                         │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ State           │ timerDuration, timerRemaining, timerInterval,          │
+  │                 │ timerRunning                                           │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ formatTime(s)   │ Converts seconds → "mm:ss" with zero-padding           │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ startTimer()    │ Sets setInterval ticking every 1 s, disables Start,    │
+  │                 │ enables Pause                                          │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ pauseTimer()    │ Clears the interval, swaps button states, shows        │
+  │                 │ "Paused" message                                       │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ resetTimer()    │ Clears interval, restores timerRemaining =             │
+  │                 │ timerDuration, resets buttons                          │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │                 │ Calls addItem('sessions', {...}) with duration +       │
+  │ onTimerFinish() │ today's date, then updateDashboardStats() so the       │
+  │                 │ Sessions Today stat card updates live, then shows a    │
+  │                 │ green success message                                  │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ Presets         │ Clicking a preset while stopped changes duration and   │
+  │                 │ marks it active; clicks are ignored while running      │
+  ├─────────────────┼────────────────────────────────────────────────────────┤
+  │ Custom input    │ Reads on change, clamps to 1–180 min, deactivates all  │
+  │                 │ presets                                                │
+  └─────────────────┴────────────────────────────────────────────────────────┘
+
+✻ Crunched for 1m 34s
+
+❯ Now implement the Dashboard Stats section. Use the existing localStorage      
+'sessions' data. Requirements: show Sessions Today (count or total minuntes),   
+Show Total Time Studied, update stats in a dynamic way when a session is        
+logged, keep everything inside script.js, connect to existing HTML and add      
+minimal CSS for styling.                                                        
+
+⏺ Read 2 files (ctrl+o to expand)
+
+⏺ Good — I can see updateDashboardStats() already handles assignments and
+  subjects but Sessions Today only shows a count and there's no Total Time
+  Studied stat or recent sessions list. Here's the plan before touching
+  anything:
+
+  - HTML — update the "Sessions Today" card label → "Study Time Today", add a
+  5th stat card for Total Time Studied, add a Recent Sessions subsection
+  - CSS — switch stats-grid to auto-fill so 5 cards flow naturally; add session
+  list item styles
+  - JS — add formatDuration() helper, expand updateDashboardStats() to compute
+  today's minutes, all-time total, and render a recent sessions list
+
+⏺ Update(index.html)
+  ⎿  Added 12 lines, removed 2 lines
+       91          <div class="stat-card">
+       92            <i class="fa-solid fa-stopwatch stat-icon"></i>
+       93            <div class="stat-info">
+       94 -            <span class="stat-value" id="stat-sessions">0</spa
+          -n>                                                            
+       95 -            <span class="stat-label">Sessions Today</span>    
+       94 +            <span class="stat-value" id="stat-sessions">0m</sp
+          +an>                                                           
+       95 +            <span class="stat-label">Study Time Today</span>  
+       96            </div>
+       97          </div>
+       98 +        <div class="stat-card">                               
+       99 +          <i class="fa-solid fa-fire stat-icon"></i>          
+      100 +          <div class="stat-info">                             
+      101 +            <span class="stat-value" id="stat-total-time">0m</
+          +span>                                                         
+      102 +            <span class="stat-label">Total Time Studied</span>
+      103 +          </div>                                              
+      104 +        </div>                                                
+      105        </div>
+      106  
+      107        <h3 class="subsection-title">Upcoming Assignments</h3>
+     ...
+      109          <i class="fa-solid fa-inbox"></i>
+      110          <p>No upcoming assignments. Add one to get started!</p
+           >
+      111        </div>
+      112 +                                                              
+      113 +      <h3 class="subsection-title">Recent Sessions</h3>       
+      114 +      <div id="recent-sessions-list"></div>                   
+      115      </section>
+      116  
+      117      <!-- Assignments Section -->
+
+⏺ Update(styles.css)
+  ⎿  Added 1 line, removed 1 line
+      235  /* ── Stats grid ─────────────────────────────────────────────
+           ── */
+      236  .stats-grid {
+      237    display: grid;
+      238 -  grid-template-columns: repeat(4, 1fr);                      
+      238 +  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr))
+          +;                                                             
+      239    gap: 1rem;
+      240  }
+      241  
+
+⏺ Now add the session list styles before the footer:
+
+⏺ Update(styles.css)
+  ⎿  Added 38 lines
+      714    white-space: nowrap;
+      715  }
+      716  
+      717 +/* ── Recent sessions list (dashboard) ───────────────────────
+          +─ */                                                          
+      718 +.session-list {                                               
+      719 +  display: flex;                                              
+      720 +  flex-direction: column;                                     
+      721 +  gap: 0.5rem;                                                
+      722 +}                                                             
+      723 +                                                              
+      724 +.session-item {                                               
+      725 +  background: var(--color-surface);                           
+      726 +  border: 1px solid var(--color-border);                      
+      727 +  border-radius: var(--radius);                               
+      728 +  padding: 0.7rem 1rem;                                       
+      729 +  display: flex;                                              
+      730 +  align-items: center;                                        
+      731 +  gap: 0.85rem;                                               
+      732 +  font-size: 0.88rem;                                         
+      733 +}                                                             
+      734 +                                                              
+      735 +.session-item-duration {                                      
+      736 +  font-weight: 600;                                           
+      737 +  color: var(--color-text);                                   
+      738 +  min-width: 3.5rem;                                          
+      739 +}                                                             
+      740 +                                                              
+      741 +.session-item-subject {                                       
+      742 +  flex: 1;                                                    
+      743 +  color: var(--color-text-muted);                             
+      744 +  display: flex;                                              
+      745 +  align-items: center;                                        
+      746 +  gap: 0.35rem;                                               
+      747 +}                                                             
+      748 +                                                              
+      749 +.session-item-date {                                          
+      750 +  font-size: 0.8rem;                                          
+      751 +  color: var(--color-text-muted);                             
+      752 +  white-space: nowrap;                                        
+      753 +}                                                             
+      754 +                                                              
+      755  /* ── Footer ─────────────────────────────────────────────────
+           ── */
+      756  .footer {
+      757    text-align: center;
+
+⏺ Now update the JS — add formatDuration() near the other utilities, then
+  rewrite updateDashboardStats():
+
+⏺ Update(script.js)
+  ⎿  Added 11 lines
+      49    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      50  }
+      51  
+      52 +// Returns a human-readable duration string from seconds.      
+      53 +// e.g. 90 → "1h 30m", 45*60 → "45m", 30 → "30s"               
+      54 +function formatDuration(seconds) {                             
+      55 +  if (seconds < 60)   return `${seconds}s`;                    
+      56 +  const h = Math.floor(seconds / 3600);                        
+      57 +  const m = Math.floor((seconds % 3600) / 60);                 
+      58 +  if (h === 0)  return `${m}m`;                                
+      59 +  if (m === 0)  return `${h}h`;                                
+      60 +  return `${h}h ${m}m`;                                        
+      61 +}                                                              
+      62 +                                                               
+      63  // Generates a simple unique id.
+      64  function generateId() {
+      65    return Date.now().toString(36) + Math.random().toString(36).s
+          lice(2, 7);
+
+⏺ Now replace the entire updateDashboardStats() function body:
+
+⏺ Update(script.js)
+  ⎿  Added 54 lines, removed 13 lines
+      461    const { subjects, assignments, sessions } = getData();
+      462    const today = new Date().toISOString().slice(0, 10);
+      463  
+      464 +  // ── Stat cards ───────────────────────────────────────────
+          +───                                                           
+      465    document.getElementById('stat-subjects').textContent  = subj
+           ects.length;
+      466    document.getElementById('stat-pending').textContent   = assi
+           gnments.filter(a => a.status === 'pending').length;
+      467    document.getElementById('stat-completed').textContent = assi
+           gnments.filter(a => a.status === 'completed').length;
+      467 -  document.getElementById('stat-sessions').textContent  = sess
+          -ions.filter(s => s.date === today).length;                    
+      468  
+      469 -  // Upcoming assignments — next 3 pending sorted by due date 
+      469 +  // Study Time Today — sum of duration for sessions logged to
+          +day                                                           
+      470 +  const todaySessions  = sessions.filter(s => s.date === today
+          +);                                                            
+      471 +  const todaySeconds   = todaySessions.reduce((sum, s) => sum 
+          ++ (s.duration || 0), 0);                                      
+      472 +  document.getElementById('stat-sessions').textContent  = form
+          +atDuration(todaySeconds);                                     
+      473 +                                                              
+      474 +  // Total Time Studied — all-time sum across every session   
+      475 +  const totalSeconds   = sessions.reduce((sum, s) => sum + (s.
+          +duration || 0), 0);                                           
+      476 +  document.getElementById('stat-total-time').textContent = for
+          +matDuration(totalSeconds);                                    
+      477 +                                                              
+      478 +  // ── Upcoming assignments — next 3 pending with a due date 
+          +───                                                           
+      479    const upcomingEl = document.getElementById('upcoming-list');
+      480    const pending = assignments
+      481      .filter(a => a.status === 'pending' && a.dueDate)
+     ...
+      488          <i class="fa-solid fa-inbox"></i>
+      489          <p>No upcoming assignments. Add one to get started!</p
+           >
+      490        </div>`;
+      491 +  } else {                                                    
+      492 +    upcomingEl.innerHTML = `                                  
+      493 +      <div class="upcoming-list-inner">                       
+      494 +        ${pending.map(a => {                                  
+      495 +          const subject    = subjects.find(s => s.id === a.sub
+          +jectId) || null;                                              
+      496 +          const dueDateStr = new Date(a.dueDate + 'T00:00:00')
+          +.toLocaleDateString('en-US', { month: 'short', day: 'numeric' 
+          +});                                                           
+      497 +          const dotHtml    = subject                          
+      498 +            ? `<span style="width:8px;height:8px;border-radius
+          +:50%;background:${subject.color};display:inline-block;flex-shr
+          +ink:0"></span>`                                               
+      499 +            : '';                                             
+      500 +          return `                                            
+      501 +            <div class="upcoming-item" data-priority="${a.prio
+          +rity}">                                                       
+      502 +              ${dotHtml}                                      
+      503 +              <span class="upcoming-item-title">${escapeHtml(a
+          +.title)}</span>                                               
+      504 +              <span class="upcoming-item-due"><i class="fa-reg
+          +ular fa-calendar" style="margin-right:0.2rem"></i>${dueDateStr
+          +}</span>                                                      
+      505 +            </div>`;                                          
+      506 +        }).join('')}                                          
+      507 +      </div>`;                                                
+      508 +  }                                                           
+      509 +                                                              
+      510 +  // ── Recent sessions — last 5, newest first ───────────────
+          +───                                                           
+      511 +  const recentEl = document.getElementById('recent-sessions-li
+          +st');                                                         
+      512 +  const recent   = [...sessions]                              
+      513 +    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))   
+      514 +    .slice(0, 5);                                             
+      515 +                                                              
+      516 +  if (recent.length === 0) {                                  
+      517 +    recentEl.innerHTML = `                                    
+      518 +      <div class="placeholder-box">                           
+      519 +        <i class="fa-solid fa-stopwatch"></i>                 
+      520 +        <p>No sessions logged yet. Start the timer to begin!</
+          +p>                                                            
+      521 +      </div>`;                                                
+      522      return;
+      523    }
+      524  
+      485 -  upcomingEl.innerHTML = `                                    
+      486 -    <div class="upcoming-list-inner">                         
+      487 -      ${pending.map(a => {                                    
+      488 -        const subject    = subjects.find(s => s.id === a.subje
+          -ctId) || null;                                                
+      489 -        const dueDateStr = new Date(a.dueDate + 'T00:00:00').t
+          -oLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          -;                                                             
+      525 +  recentEl.innerHTML = `                                      
+      526 +    <div class="session-list">                                
+      527 +      ${recent.map(s => {                                     
+      528 +        const subject    = subjects.find(sub => sub.id === s.s
+          +ubjectId) || null;                                            
+      529 +        const dateStr    = new Date(s.date + 'T00:00:00').toLo
+          +caleDateString('en-US', { month: 'short', day: 'numeric', year
+          +: 'numeric' });                                               
+      530          const dotHtml    = subject
+      491 -          ? `<span style="width:8px;height:8px;border-radius:5
+          -0%;background:${subject.color};display:inline-block;flex-shrin
+          -k:0"></span>`                                                 
+      492 -          : '';                                               
+      531 +          ? `<span style="width:8px;height:8px;border-radius:5
+          +0%;background:${subject.color};display:inline-block"></span>` 
+      532 +          : '<i class="fa-solid fa-clock" style="font-size:0.7
+          +5rem"></i>';                                                  
+      533 +        const subjectLabel = subject ? escapeHtml(subject.name
+          +) : 'General';                                                
+      534          return `
+      494 -          <div class="upcoming-item" data-priority="${a.priori
+          -ty}">                                                         
+      495 -            ${dotHtml}                                        
+      496 -            <span class="upcoming-item-title">${escapeHtml(a.t
+          -itle)}</span>                                                 
+      497 -            <span class="upcoming-item-due"><i class="fa-regul
+          -ar fa-calendar" style="margin-right:0.2rem"></i>${dueDateStr}<
+          -/span>                                                        
+      535 +          <div class="session-item">                          
+      536 +            <span class="session-item-duration">${formatDurati
+          +on(s.duration)}</span>                                        
+      537 +            <span class="session-item-subject">${dotHtml} ${su
+          +bjectLabel}</span>                                            
+      538 +            <span class="session-item-date">${dateStr}</span> 
+      539            </div>`;
+      540        }).join('')}
+      541      </div>`;
+
+⏺ Here's a summary of every change made:
+
+  HTML
+  - "Sessions Today" card → label updated to "Study Time Today", value id stays
+  stat-sessions
+  - New 5th stat card added with id="stat-total-time" and label "Total Time 
+  Studied"
+  - New <h3>Recent Sessions</h3> + <div id="recent-sessions-list"> subsection
+  added below Upcoming Assignments
+
+  CSS
+  - stats-grid changed from repeat(4, 1fr) → repeat(auto-fill, minmax(185px, 
+  1fr)) — 5 cards now wrap naturally on any screen width
+  - Added .session-list, .session-item, .session-item-duration,
+  .session-item-subject, .session-item-date for the recent sessions rows
+
+  JS
+  - Added formatDuration(seconds) utility near the other helpers — converts raw
+  seconds to "30s" / "25m" / "1h 30m"
+  - Rewrote updateDashboardStats() with three distinct sections:
+
+  ┌──────────────┬──────────────────────────────────────────────────────────┐
+  │   Section    │                          Logic                           │
+  ├──────────────┼──────────────────────────────────────────────────────────┤
+  │ Study Time   │ .filter(s.date === today) → .reduce(sum + duration) →    │
+  │ Today        │ formatDuration()                                         │
+  ├──────────────┼──────────────────────────────────────────────────────────┤
+  │ Total Time   │ .reduce over all sessions regardless of date             │
+  │ Studied      │                                                          │
+  ├──────────────┼──────────────────────────────────────────────────────────┤
+  │ Recent       │ Last 5 sessions sorted newest-first by createdAt,        │
+  │ Sessions     │ rendered as rows with duration, subject dot + name, and  │
+  │              │ date                                                     │
+  └──────────────┴──────────────────────────────────────────────────────────┘
+
+  Since onTimerFinish() already calls updateDashboardStats() after addItem, both
+   stats and the recent list update the instant a session is logged — no extra
+  wiring needed.
+
+✻ Churned for 1m 50s
+
+❯ Make sure the dashboard updates in a dynamic way whenever a session is        
+logged. Check the login of my updateDashboardStats() to confirm today's study   
+time and total time are calculated correctly. Verfiy the recent sessions list   
+always show the five newest sessions in descending order. Suggest concise       
+improvements if anything could cause stale data or incorrect display.           
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ The logic is mostly solid. Let me do a thorough line-by-line analysis before
+  touching anything.
+
+  Today's study time (line 470–472)
+  const today = new Date().toISOString().slice(0, 10);      // UTC date
+  const todaySessions = sessions.filter(s => s.date === today);
+  const todaySeconds  = todaySessions.reduce((sum, s) => sum + (s.duration ||
+  0), 0);
+  ✅ Correct. onTimerFinish() stores date using the exact same expression, so
+  filter and storage always agree. The || 0 guard handles any session with a
+  missing duration safely.
+
+  Total time (line 475)
+  const totalSeconds = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+  ✅ Correct. Fresh getData() is called at the top of every invocation, so no
+  stale data.
+
+  Recent sessions sort (line 512–514)
+  const recent = [...sessions]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, 5);
+  ✅ createdAt is an ISO timestamp string ("2026-03-23T10:30:00.000Z"), which is
+   lexicographically sortable — localeCompare in descending order is correct.
+  The spread [...sessions] prevents mutating the original array.
+
+  Dynamic update path
+  - Timer finish → onTimerFinish() → addItem() → updateDashboardStats() ✅
+  - Assignment change → renderAssignments() → updateDashboardStats() ✅
+  - Subject change → renderSubjects() → updateDashboardStats() ✅
+  - Init → called directly ✅
+
+  Two real issues found:
+
+  1. formatDuration(0) returns "0s" not "0m" — when no sessions exist today, the
+   stat card shows "0s" which looks wrong for a time-in-minutes display.
+
+  2. createdAt sort will throw if a session is ever missing that field —
+  b.createdAt.localeCompare(...) throws a TypeError on undefined. addItem always
+   injects it, but a defensive fallback costs nothing.
+
+  Applying both fixes now:
+
+⏺ Update(script.js)
+  ⎿  Added 4 lines, removed 3 lines
+      52  // Returns a human-readable duration string from seconds.
+      53  // e.g. 90 → "1h 30m", 45*60 → "45m", 30 → "30s"
+      54  function formatDuration(seconds) {
+      55 -  if (seconds < 60)   return `${seconds}s`;                    
+      55 +  if (seconds <= 0)  return '0m';   // stat cards show minutes,
+         + not "0s"                                                      
+      56 +  if (seconds < 60)  return `${seconds}s`;                     
+      57    const h = Math.floor(seconds / 3600);
+      58    const m = Math.floor((seconds % 3600) / 60);
+      58 -  if (h === 0)  return `${m}m`;                                
+      59 -  if (m === 0)  return `${h}h`;                                
+      59 +  if (h === 0) return `${m}m`;                                 
+      60 +  if (m === 0) return `${h}h`;                                 
+      61    return `${h}h ${m}m`;
+      62  }
+      63  
+
+⏺ Update(script.js)
+  ⎿  Added 1 line, removed 1 line
+      511    // ── Recent sessions — last 5, newest first ───────────────
+           ───
+      512    const recentEl = document.getElementById('recent-sessions-li
+           st');
+      513    const recent   = [...sessions]
+      514 -    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))   
+      514 +    .sort((a, b) => (b.createdAt || '').localeCompare(a.create
+          +dAt || ''))                                                   
+      515      .slice(0, 5);
+      516  
+      517    if (recent.length === 0) {
+
+⏺ Audit summary:
+
+  ┌────────────────────────┬────────────────────────────────────────────────┐
+  │         Check          │                     Result                     │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ Today filter matches   │ ✅ Both use same new                           │
+  │ storage date           │ Date().toISOString().slice(0,10) — always in   │
+  │                        │ sync                                           │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ duration guard         │ ✅ || 0 on every reduce, safe against missing  │
+  │                        │ field                                          │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ today computed fresh   │ ✅ No closure caching, correct across midnight │
+  │ every call             │                                                │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ getData() called fresh │ ✅ No stale reads                              │
+  │  every call            │                                                │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ Recent sessions sort   │ ✅ ISO strings are lexicographically sortable  │
+  │                        │ — descending localeCompare is correct          │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ Array mutation         │ ✅ [...sessions] spreads before sort, original │
+  │                        │  untouched                                     │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ formatDuration(0) →    │ Fixed → now returns "0m"                       │
+  │ "0s"                   │                                                │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │ createdAt sort crash   │ Fixed → || '' fallback prevents TypeError      │
+  │ on missing field       │                                                │
+  ├────────────────────────┼────────────────────────────────────────────────┤
+  │                        │ ✅ onTimerFinish → addItem →                   │
+  │ Update path from timer │ updateDashboardStats — immediate, no manual    │
+  │                        │ trigger needed                                 │
+  └────────────────────────┴────────────────────────────────────────────────┘
+
+  No stale data paths exist — every call to updateDashboardStats() reads fresh
+  from localStorage via getData().
+
+✻ Worked for 1m 7s

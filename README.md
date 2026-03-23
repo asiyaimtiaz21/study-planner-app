@@ -29,3 +29,16 @@ Open the `index.html` file in any modern browser. No server setup or installatio
 
 The goal of this midterm project is to build a working Study Planner app that shows off my HTML, CSS, and JavaScript skills. The focus is on creating a usable, organized interface, managing data in the browser, and building something students would actually use.
 
+---
+
+## Additional Documentation (Base Tier Requirements)
+
+### Known Bugs / Limitations
+
+- `formatDuration` displays "0m" when no sessions exist today (intentional for readability).  
+- Sessions rely on browser localStorage. clearing browser data will delete saved sessions.  
+- The timer does not continue if the page is refreshed or closed mid-session.  
+
+### What I Learned
+
+Working on this project with Claude Code helped me see the value of AI for things like planning, debugging, and iterating on features quickly. I learned to balance AI suggestions with my own judgment. For example, I chose to to keep all code in `script.js` to lessen complexity. Debugging sessions together with AI highlighted subtle issues, like defensive checks for missing fields in localStorage data. I also made sure to use incremental development, building features step by step and testing as I went. Overall, the project showed me how AI can speed up coding while still requiring incorporating decision making skills.

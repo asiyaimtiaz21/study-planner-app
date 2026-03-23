@@ -91,8 +91,15 @@
         <div class="stat-card">
           <i class="fa-solid fa-stopwatch stat-icon"></i>
           <div class="stat-info">
-            <span class="stat-value" id="stat-sessions">0</span>
-            <span class="stat-label">Sessions Today</span>
+            <span class="stat-value" id="stat-sessions">0m</span>
+            <span class="stat-label">Study Time Today</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <i class="fa-solid fa-fire stat-icon"></i>
+          <div class="stat-info">
+            <span class="stat-value" id="stat-total-time">0m</span>
+            <span class="stat-label">Total Time Studied</span>
           </div>
         </div>
       </div>
@@ -102,6 +109,9 @@
         <i class="fa-solid fa-inbox"></i>
         <p>No upcoming assignments. Add one to get started!</p>
       </div>
+
+      <h3 class="subsection-title">Recent Sessions</h3>
+      <div id="recent-sessions-list"></div>
     </section>
 
     <!-- Assignments Section -->
@@ -110,10 +120,30 @@
         <i class="fa-solid fa-list-check"></i> Assignments
       </h2>
       <p class="section-desc">Track what's due and mark tasks complete.</p>
-      <div class="placeholder-box">
-        <i class="fa-solid fa-hammer"></i>
-        <p>Assignment tracker coming soon.</p>
+
+      <div class="assignment-form">
+        <input type="text" id="assignment-title" class="form-input" placeholder="Assignment title" maxlength="100" />
+        <select id="assignment-subject" class="form-select">
+          <option value="">No subject</option>
+        </select>
+        <input type="date" id="assignment-due" class="form-input form-input--date" />
+        <select id="assignment-priority" class="form-select">
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+          <option value="high">High</option>
+        </select>
+        <button class="btn btn-add" id="add-assignment-btn">
+          <i class="fa-solid fa-plus"></i> Add
+        </button>
       </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="pending">Pending</button>
+        <button class="filter-btn" data-filter="completed">Completed</button>
+      </div>
+
+      <div id="assignments-list"></div>
     </section>
 
     <!-- Timer Section -->
@@ -121,10 +151,37 @@
       <h2 class="section-title">
         <i class="fa-solid fa-clock"></i> Study Timer
       </h2>
-      <p class="section-desc">Use focused Pomodoro sessions to study smarter.</p>
-      <div class="placeholder-box">
-        <i class="fa-solid fa-hammer"></i>
-        <p>Pomodoro timer coming soon.</p>
+      <p class="section-desc">Use focused sessions to study smarter. Sessions are logged automatically when the timer finishes.</p>
+
+      <div class="timer-card">
+
+        <!-- Duration presets + custom input -->
+        <div class="timer-presets">
+          <button class="timer-preset active" data-minutes="25">25 min</button>
+          <button class="timer-preset" data-minutes="10">10 min</button>
+          <button class="timer-preset" data-minutes="5">5 min</button>
+          <input type="number" id="timer-custom" class="form-input timer-custom-input" placeholder="Custom (min)" min="1" max="180" />
+        </div>
+
+        <!-- Countdown display -->
+        <div class="timer-display" id="timer-display">25:00</div>
+
+        <!-- Controls -->
+        <div class="timer-controls">
+          <button class="btn timer-btn-start" id="timer-start">
+            <i class="fa-solid fa-play"></i> Start
+          </button>
+          <button class="btn timer-btn-pause" id="timer-pause" disabled>
+            <i class="fa-solid fa-pause"></i> Pause
+          </button>
+          <button class="btn timer-btn-reset" id="timer-reset">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
+        </div>
+
+        <!-- Status message (paused / session complete) -->
+        <p class="timer-status" id="timer-status"></p>
+
       </div>
     </section>
 
@@ -134,10 +191,16 @@
         <i class="fa-solid fa-folder-open"></i> Subjects
       </h2>
       <p class="section-desc">Create and manage your courses and subjects.</p>
-      <div class="placeholder-box">
-        <i class="fa-solid fa-hammer"></i>
-        <p>Subject manager coming soon.</p>
+
+      <div class="subject-form">
+        <input type="text" id="subject-input" class="form-input" placeholder="e.g. Mathematics" maxlength="50" />
+        <input type="color" id="subject-color" class="color-picker" value="#4f46e5" title="Pick a colour" />
+        <button class="btn btn-add" id="add-subject-btn">
+          <i class="fa-solid fa-plus"></i> Add Subject
+        </button>
       </div>
+
+      <div id="subjects-list"></div>
     </section>
 
   </main>
