@@ -542,6 +542,70 @@ function updateDashboardStats() {
     </div>`;
 }
 
+// ----- AI Study Advice -----
+
+document.getElementById('generate-advice-btn').addEventListener('click', generateStudyAdvice);
+
+async function generateStudyAdvice() {
+  const btn = document.getElementById('generate-advice-btn');
+  const output = document.getElementById('ai-advice-output');
+
+  // Read assignments from localStorage
+  const { assignments } = getData();
+  const pending = assignments.filter(a => a.status === 'pending');
+
+  if (pending.length === 0) {
+    output.style.display = 'block';
+    output.textContent = 'No pending assignments found. Add some assignments first!';
+    return;
+  }
+
+  // Build a short summary of pending assignments for the prompt
+  const list = pending.map(a => {
+    const due = a.dueDate ? ` (due ${a.dueDate})` : '';
+    const priority = a.priority ? ` [${a.priority} priority]` : '';
+    return `- ${a.title}${due}${priority}`;
+  }).join('\n');
+
+  const prompt =
+  `You are a study coach. Based on these assignments:\n${list}\n\n` +
+  `Give ONLY 2-4 sentences of study advice. Be specific, prioritize what to do first, and keep it short.`;
+
+  // Show loading state
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Thinking...';
+  output.style.display = 'block';
+  output.textContent = 'Generating advice...';
+
+  try {
+    const response = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      mode: 'cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gemma3:1b',
+        prompt: prompt,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Ollama responded with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    output.textContent = data.response.trim();
+  } catch (err) {
+    output.textContent = 'Could not connect to Ollama. Make sure it is running on http://localhost:11434.';
+    console.error('Ollama error:', err);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-robot"></i> Generate Study Advice';
+  }
+}
+
 // ----- Init -----
 populateSubjectDropdown();
 renderSubjects();

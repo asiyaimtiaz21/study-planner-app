@@ -42,3 +42,22 @@ The goal of this midterm project is to build a working Study Planner app that sh
 ### What I Learned
 
 Working on this project with Claude Code helped me see the value of AI for things like planning, debugging, and iterating on features quickly. I learned to balance AI suggestions with my own judgment. For example, I chose to to keep all code in `script.js` to lessen complexity. Debugging sessions together with AI highlighted subtle issues, like defensive checks for missing fields in localStorage data. I also made sure to use incremental development, building features step by step and testing as I went. Overall, the project showed me how AI can speed up coding while still requiring incorporating decision making skills.
+
+## AI-Powered Feature: Generate Study Advice
+
+This project includes an AI feature called **Generate Study Advice**.
+
+It uses a locally running Ollama model, `gemma3:1b`, to analyze the user’s pending assignments stored in `localStorage`. When the user clicks a button, the app sends the assignment list to the model through a REST API call and receives a short study recommendation in return.
+
+The AI responds with 2–4 sentences of prioritized study advice which helps users decide what to focus on first.
+
+### How it works:
+- Reads assignments from `localStorage`
+- Filters pending tasks
+- Sends them to Ollama at:
+  `http://localhost:11434/api/generate`
+- Uses model: `gemma3:1b`
+- Displays response in the UI when the button is clicked
+
+### Purpose
+This feature shows how AI models can be integrated into real web applications to create personalized, context-aware suggestions based on the user data.

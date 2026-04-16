@@ -752,6 +752,23 @@ a {
   white-space: nowrap;
 }
 
+/* ── AI Advice ──────────────────────────────────────────────── */
+.ai-advice-box {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ai-advice-output {
+  background: var(--color-primary-lt);
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.3rem;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  line-height: 1.7;
+}
+
 /* ── Footer ─────────────────────────────────────────────────── */
 .footer {
   text-align: center;
